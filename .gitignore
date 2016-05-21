@@ -13,3 +13,5 @@ cabal-dev
 *.aux
 *.hp
 .stack-work/
+*.dat
+*.png
