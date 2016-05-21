@@ -11,10 +11,10 @@ newMagicSquare xs = let n = (floor . sqrt . fromIntegral) $ length xs in
 -- Computes squared diferences between sums of rows, columns and diagonals 
 squaredDiferences :: MagicSquare -> Int
 squaredDiferences square =
-  let lines = (trace square)
-            : (trace . fromLists) (map (\ row -> reverse row ) (toLists square))
-            : map (\ row -> sum row ) (toLists square)
-            ++ map (\ row -> sum row ) (toLists $ transpose square) 
+  let lines = trace square
+            : (trace . fromLists) (map reverse (toLists square))
+            : map sum (toLists square)
+            ++ map sum (toLists $ transpose square) 
   in
   let 
     squaredDiferences' [_] = 0

@@ -7,11 +7,12 @@ import System.Random
 import Graphics.EasyPlot
 import Init
 import Individual
+import MagicSquare
 import Population
 
 helpMessage :: IO ()
 helpMessage = do
-  putStrLn "To run this program type:"	
+  putStrLn "To run this program type:"
   putStrLn "geneticMagicsquares, max number of iterations, magic square size, size of the population, mutation rate, crossover rate, number of elite elements that are preserved butween generations, tournament size"
   putStrLn "geneticMagicsquares Int Int Int Float Float Int Int"
   
@@ -36,11 +37,17 @@ main = do
                                             -- Size of elit population
         let tournamentSize = read (args !! 6) :: Int
   
-	population' <- createPopulation popSize sideSize
+        population' <- createPopulation popSize sideSize
         let population = calcFitness population'
+
+        let (_,gs) = unzip $ chromosome (head $ ordPopulation population)
+        let magicSquare = newMagicSquare gs
+        putStrLn "Initial solution is:"
+        print magicSquare
   
         fitness <- loop 0 iter elite tournamentSize mutationRate 
                         crossoverRate population
+
 
         print $ head fitness
         print $ last fitness
@@ -66,7 +73,7 @@ loop n iter e tSize m c p = do -- curent iteration, max iterations,
                     (fitness (head $ ordPopulation p'))
 
   let result = (n, f, calcFitnessPopulation p', length p')
-  rest <- loop (n+1) (iter-1) e tSize m c p' 
+  rest <- loop (n+1) (if f == 0 then 0 else iter-1) e tSize m c p' 
 
   return (result : rest) 
 
@@ -80,19 +87,13 @@ printGraphic fitness =
     ]
 
 printSolution :: Individual -> IO ()
-printSolution individual = do
-  {-- let outputCities = map (\ city -> "City " ++ show (City.id city) ++ ", @ " 
-                                            ++ show (pos city)) cities
-  let outputTSP = map (\ g -> "Visit: " ++ show (fst g) ++ ", city " 
-                                        ++ show (snd g)) 
-                      (chromosome individual) --}
+printSolution i = do
+  let (_,gs) = unzip $ chromosome i
+  let magicSquare = newMagicSquare gs
   putStrLn "--------------------"
-  putStrLn "Cities are:"
-  -- mapM_ print outputCities
-  putStrLn "--------------------"
-  putStrLn ("Total fitness: " ++ show (fitness individual))
+  putStrLn ("Total fitness: " ++ show (fitness i))
   putStrLn "--------------------"
   putStrLn "Best solution is:"
-  -- mapM_ print outputTSP
+  print magicSquare
   putStrLn "--------------------"
 
