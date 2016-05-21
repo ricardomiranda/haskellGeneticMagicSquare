@@ -1,3 +1,3 @@
-(C) Ricardo Cristovao√v√o Miranda, 2016.
+(C) Ricardo Cristovao Miranda, 2016.
 
 
