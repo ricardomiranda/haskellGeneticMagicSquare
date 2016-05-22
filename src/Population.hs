@@ -1,5 +1,6 @@
 module Population where
 
+import Control.Concurrent.Async
 import Control.Parallel.Strategies
 import Data.List
 import Data.Maybe
@@ -34,14 +35,18 @@ tournamentSelection n p = do -- tournament size, previous population
   is <- randList n p
   return (head $ ordPopulation is)
 
-selectParents :: Int -> Population -> IO (Individual, Individual)
-selectParents n p = do -- tournament size, previous population
-  parent1 <- tournamentSelection n p
-  parent2 <- tournamentSelection n p
-  return (parent1, parent2)
+selectParents :: Int -> Int -> Population -> IO [ (Individual, Individual) ]
+selectParents 0 _ _ = return []
+selectParents n tSize p = do -- number of children, tournament size, previous population
+  parent1 <- tournamentSelection tSize p
+  parent2 <- tournamentSelection tSize p
+  let parents = (parent1, parent2)
+  rest <- selectParents (n-1) tSize p
+
+  return (parents : rest)
 
 crossover :: Float -> (Individual, Individual) -> IO Individual
-crossover c parents = do -- crossover rate, (first parent, second parent)
+crossover c parents = do -- number of children, crossover rate, (first parent, second parent)
   -- With the traveling salesman problem, both the genes and the order of the genes
   -- in the chromosome are very important. In fact, for the traveling salesman 
   -- problem we shouldn't ever have more than one copy of a specific gene in our
@@ -81,14 +86,10 @@ crossover c parents = do -- crossover rate, (first parent, second parent)
         then error "Length mismatch, module Population, function crossover. \n"
         else return child
 
-offspring :: Int -> Int -> Float -> Float -> Population -> IO Population
-offspring 0 _ _ _ _ = return [] 
-offspring n tSize m c p = do -- number of children, tournament size, mutation rate,
-                             -- crossover rate, previous population
-  individual <- selectParents tSize p >>= crossover c >>= mutation m
-  rest <- offspring (n-1) tSize m c p
-
-  return (individual : rest)
+offspring :: [ (Individual, Individual) ] -> Float -> Float -> IO Population
+offspring parents m c = do -- list of parents, mutation rate, crossover rate
+  children <- mapConcurrently (\ ps -> crossover c ps >>= mutation m ) parents
+  return children
 
 mutation :: Float -> Individual -> IO Individual
 mutation m i = do -- mutation rate, individual
@@ -107,7 +108,7 @@ mutation m i = do -- mutation rate, individual
           if m < r
             then swapGene i (pos1-1)
             else do
-	      gen' <- newStdGen
+              gen' <- newStdGen
               let pos2 = head $ drop (snd $ chromosome i !! pos1) 
                        $ randomRs (0, length (chromosome i) - 1) gen' :: Int
               let g1 = (pos1, snd $ chromosome i !! pos2)
@@ -121,5 +122,6 @@ newGeneration :: Int -> Int -> Float -> Float
 newGeneration e tSize m c p = do -- elite, tournament size, mutation rate,
                                  -- crossover rate, previous population
     let pElite = take e $ ordPopulation p 
-    p' <- offspring (length p - e) tSize m c p
+    parents <- selectParents (length p - e) tSize p
+    p' <- offspring parents m c
     return (calcFitness $ pElite ++ p')
