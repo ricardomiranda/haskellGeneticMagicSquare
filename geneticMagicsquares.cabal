@@ -5,6 +5,7 @@ name:                geneticMagicsquares
 version:             0.1.0.0
 synopsis:            Solver for Magic Squares
 -- description:         
+homepage:            https://github.com/ricardomiranda/haskellGeneticMagicSquare
 license:             MIT
 license-file:        LICENSE
 author:              Ricardo Miranda
@@ -19,14 +20,15 @@ executable geneticMagicsquares
   main-is:             Main.hs
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.8 && <4.9,
+  build-depends:       base,
                        random >=1.1 && <1.2,
                        random-shuffle,
                        sequence,
                        containers >=0.5 && <0.6,
                        easyplot,
                        parallel,
-                       matrix
+                       matrix,
+                       async
   ghc-options:         -O2 -threaded -rtsopts -eventlog
   hs-source-dirs:      src
   default-language:    Haskell2010
