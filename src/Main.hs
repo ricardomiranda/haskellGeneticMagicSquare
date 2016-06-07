@@ -72,6 +72,8 @@ loop n iter e tSize m c p = do -- curent iteration, max iterations,
   let f = fromMaybe (error "Fitness not available, module Main, function loop") 
                     (fitness (head $ ordPopulation p'))
 
+  -- printPopulation p'
+
   let result = (n, f, calcFitnessPopulation p', length p')
   rest <- loop (n+1) (if f == 0 then 0 else iter-1) e tSize m c p' 
 
@@ -97,3 +99,10 @@ printSolution i = do
   print magicSquare
   putStrLn "--------------------"
 
+printPopulation :: Population -> IO ()
+printPopulation p = do
+  let squares = map (\ i -> let (_,gs) = unzip $ chromosome i in  
+                             newMagicSquare gs ) $ take 4 (ordPopulation p)
+  putStrLn "--------------------"
+  mapM print squares
+  putStrLn "--------------------"
